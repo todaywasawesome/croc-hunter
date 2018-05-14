@@ -19,11 +19,33 @@ steps:
   CollectEnvVarsAndPublishBuildToArtifactory:
     title: Collecting Environment Variables and Publishing Build to Artifactory
     image: codefresh/docker-jfrog-cli-go:initial-branch-1fb4a8d
+    environment:
+      - JFROG_CLI_OFFER_CONFIG=false
     commands:
-      - JFROG_CLI_OFFER_CONFIG=false jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
-      - JFROG_CLI_OFFER_CONFIG=false jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
-  # PushDockerImageToArtifactroyBuild:
-  #   title: Pushing Docker image to Artifactory
+      - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+      - jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+      - jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+  PushDockerImageToArtifactroyBuild:
+    title: Pushing Docker image to Artifactory
+    type: composition
+    composition:
+      version: '2'
+      services:
+        buildimage:
+          image: ${{BuildingDockerImage}}
+          command: sh -c "exit 0"
+    composition_candidates:
+      scan_service:
+        image: codefresh/docker-jfrog-cli-go:initial-branch-1fb4a8d
+        environment:
+          - JFROG_CLI_OFFER_CONFIG=false
+        command: jfrog rt docker-push --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
+        depends_on:
+          - buildimage
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /var/lib/docker:/var/lib/docker
+    add_flow_volume_to_composition: true
   Deploy_with_Helm:
     image: codefresh/cfstep-helm:2.9.0
     when:
