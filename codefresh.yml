@@ -25,7 +25,7 @@ steps:
       - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
       - jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
       - jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
-  PushDockerImageToArtifactroyBuild:
+  PushDockerImageToArtifactoryBuild:
     title: Pushing Docker image to Artifactory
     type: composition
     composition:
@@ -77,10 +77,18 @@ steps:
       - custom_imagePullSecrets_email=${{REPO_EMAIL}}
       - custom_image=jfrogjd-crochunter.jfrog.io/swampup18/crochunter
       - custom_ingress_hostname=${{INGRESS_HOSTNAME}}
-  # PushHelmToArtifactroyBuild:
+  # PushHelmToArtifactoryBuild:
   #   title: Pushing Helm Chart to Artifactory
-  # ScanBuildWithXray:
-  #   title: Initiating JFrog XRay Build Scan
+  #   environment:
+  #     - JFROG_CLI_OFFER_CONFIG=false
+  #   commands:
+  #     - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+  ScanBuildWithXray:
+    title: Scanning Build with JFrog Xray
+    environment:
+      - JFROG_CLI_OFFER_CONFIG=false
+    commands:
+      - jfrog rt build-scan --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
   # BuildingTestDockerImage:
   #   title: Building Test Docker Image
   #   type: build
@@ -153,5 +161,5 @@ steps:
   #     branch:
   #       only:
   #         - master
-  # AddDVTReportsToArtifactroyBuild:
+  # AddDVTReportsToArtifactoryBuild:
   #   title: Initiating JFrog XRay Build Scan
