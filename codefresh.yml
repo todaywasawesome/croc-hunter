@@ -16,6 +16,13 @@ steps:
     image_name: swampup18/crochunter
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     registry: jfrog-jd-art
+  CollectEnvVarsAndPublishBuildToArtifactory:
+    title: Collecting Environment Variables and Publishing Build to Artifactory
+    image: codefresh/docker-jfrog-cli-go:initial-branch-1fb4a8d
+    commands:
+      - JFROG_CLI_OFFER_CONFIG=false jfrog rt build-publish --build-url=${{CF_BUILD_URL}} --env-exclude=*KEY*;*PASS*; --url=https://jfrogjd.jfrog.io/jfrogjd --user=${{REPO_USER}} --password=${{REPO_PASS}} ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+  # PushDockerImageToArtifactroyBuild:
+  #   title: Pushing Docker image to Artifactory
   Deploy_with_Helm:
     image: codefresh/cfstep-helm:2.9.0
     when:
@@ -47,76 +54,81 @@ steps:
       - custom_imagePullSecrets_email=${{REPO_EMAIL}}
       - custom_image=jfrogjd-crochunter.jfrog.io/swampup18/crochunter
       - custom_ingress_hostname=${{INGRESS_HOSTNAME}}
-
-  BuildingTestDockerImage:
-    title: Building Test Docker Image
-    type: build
-    image_name: jldeen/crochunter-tests
-    working_directory: ./tests/
-    dockerfile: Dockerfile
-    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-  Deployment_Verification_Tests:
-    title: Running Selenium DVTs
-    type: composition
-    composition:
-      version: '2'
-      services:
-        selenium_hub:
-          image: selenium/hub
-          ports:
-            - 4444
-          environment:
-            - SE_OPTS=-debug
-            - GRID_MAX_SESSION=5
-        chrome_node:
-          image: selenium/node-chrome
-          ports:
-            - 5900
-            - 5555
-          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-          depends_on: 
-            - selenium_hub
-          environment:
-            - HUB_HOST=selenium_hub
-            - REMOTE_HOST=http://chrome_node:5555
-            - NODE_MAX_SESSION=5
-            - NODE_MAX_INSTANCES=5
-        firefox_node:
-          image: selenium/node-firefox
-          ports:
-            - 5900
-            - 5555
-          command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
-          depends_on: 
-            - selenium_hub
-          environment:
-            - HUB_HOST=selenium_hub
-            - REMOTE_HOST=http://firefox_node:5555
-            - NODE_MAX_SESSION=5
-            - NODE_MAX_INSTANCES=5
-    composition_candidates:
-      test:
-        image: ${{BuildingTestDockerImage}}
-        working_dir: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
-        environment:
-          CF_SHORT_REVISION: ${{CF_SHORT_REVISION}}
-          INGRESS_HOSTNAME: ${{INGRESS_HOSTNAME}}
-          RELEASE_NAME: ${{RELEASE_NAME}}
-        command: bash -c 'IFS=" " read -a browserarray <<< "${{BROWSERS}}" && for browser in "$${browserarray[@]}"; do BROWSER=$$browser python -m pytest -vvv --html=./selenium-report-$${browser}.html --self-contained-html ./tests/selenium/test_app.py; done'
-        volumes:
-          - '${{CF_VOLUME_NAME}}:/codefresh/volume'
-    add_flow_volume_to_composition: true
-    on_success:
-      metadata:
-        set:
-          - '${{BuildingTestDockerImage.imageId}}':
-              - SELENIUM_DVTS: true
-    on_fail:
-      metadata:
-        set:
-          - '${{BuildingTestDockerImage.imageId}}':
-              - SELENIUM_DVTS: false
-    when:
-      branch:
-        only:
-          - master
+  # PushHelmToArtifactroyBuild:
+  #   title: Pushing Helm Chart to Artifactory
+  # ScanBuildWithXray:
+  #   title: Initiating JFrog XRay Build Scan
+  # BuildingTestDockerImage:
+  #   title: Building Test Docker Image
+  #   type: build
+  #   image_name: jldeen/crochunter-tests
+  #   working_directory: ./tests/
+  #   dockerfile: Dockerfile
+  #   tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+  # Deployment_Verification_Tests:
+  #   title: Running Selenium DVTs
+  #   type: composition
+  #   composition:
+  #     version: '2'
+  #     services:
+  #       selenium_hub:
+  #         image: selenium/hub
+  #         ports:
+  #           - 4444
+  #         environment:
+  #           - SE_OPTS=-debug
+  #           - GRID_MAX_SESSION=5
+  #       chrome_node:
+  #         image: selenium/node-chrome
+  #         ports:
+  #           - 5900
+  #           - 5555
+  #         command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+  #         depends_on: 
+  #           - selenium_hub
+  #         environment:
+  #           - HUB_HOST=selenium_hub
+  #           - REMOTE_HOST=http://chrome_node:5555
+  #           - NODE_MAX_SESSION=5
+  #           - NODE_MAX_INSTANCES=5
+  #       firefox_node:
+  #         image: selenium/node-firefox
+  #         ports:
+  #           - 5900
+  #           - 5555
+  #         command: bash -c "sleep 5 && /opt/bin/entry_point.sh"
+  #         depends_on: 
+  #           - selenium_hub
+  #         environment:
+  #           - HUB_HOST=selenium_hub
+  #           - REMOTE_HOST=http://firefox_node:5555
+  #           - NODE_MAX_SESSION=5
+  #           - NODE_MAX_INSTANCES=5
+  #   composition_candidates:
+  #     test:
+  #       image: ${{BuildingTestDockerImage}}
+  #       working_dir: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
+  #       environment:
+  #         CF_SHORT_REVISION: ${{CF_SHORT_REVISION}}
+  #         INGRESS_HOSTNAME: ${{INGRESS_HOSTNAME}}
+  #         RELEASE_NAME: ${{RELEASE_NAME}}
+  #       command: bash -c 'IFS=" " read -a browserarray <<< "${{BROWSERS}}" && for browser in "$${browserarray[@]}"; do BROWSER=$$browser python -m pytest -vvv --html=./selenium-report-$${browser}.html --self-contained-html ./tests/selenium/test_app.py; done'
+  #       volumes:
+  #         - '${{CF_VOLUME_NAME}}:/codefresh/volume'
+  #   add_flow_volume_to_composition: true
+  #   on_success:
+  #     metadata:
+  #       set:
+  #         - '${{BuildingTestDockerImage.imageId}}':
+  #             - SELENIUM_DVTS: true
+  #   on_fail:
+  #     metadata:
+  #       set:
+  #         - '${{BuildingTestDockerImage.imageId}}':
+  #             - SELENIUM_DVTS: false
+  #   when:
+  #     branch:
+  #       only:
+  #         - master
+  # AddDVTReportsToArtifactroyBuild:
+  #   title: Initiating JFrog XRay Build Scan
