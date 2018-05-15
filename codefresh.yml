@@ -149,12 +149,12 @@ steps:
           jfrog rt upload --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "$PACKAGE" helm-repo && 
           codefresh auth create-context --api-key ${{CODEFRESH_CLI_KEY}} &&
           jfrog rt build-publish --server-id=jfrogjd --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | tee publish.txt &&
-          codefresh annotate image $$(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label ARTIFACTORY_BUILD_URL=$$(grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" publish.txt) &&
+          codefresh annotate image $$(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label ARTIFACTORY_BUILD_URL="$$(grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*" publish.txt)" &&
           jfrog rt build-scan --server-id=jfrogjd ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | tee results.json && 
           codefresh annotate image $$(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") 
-          --label XRAY_ALERTS=$$(jq ".summary.total_alerts" results.json)
-          --label XRAY_MESSAGE=$$(jq ".summary.message" results.json)
-          --label XRAY_DETAILS_URL=$$(jq ".summary.more_details_url" results.json) && 
+          --label XRAY_ALERTS="$$(jq ".summary.total_alerts" results.json)"
+          --label XRAY_MESSAGE="$$(jq ".summary.message" results.json)"
+          --label XRAY_DETAILS_URL="$$(jq ".summary.more_details_url" results.json)" && 
           if [[ "$$(jq ".summary.fail_build" results.json)" = *true* ]]; then exit 1; else exit 0; fi
           '
         depends_on:
