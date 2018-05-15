@@ -89,7 +89,7 @@ steps:
     environment:
       - JFROG_CLI_OFFER_CONFIG=false
     commands:
-      - jfrog rt build-scan --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+      - jfrog rt build-scan --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
   # BuildingTestDockerImage:
   #   title: Building Test Docker Image
   #   type: build
