@@ -9,6 +9,13 @@ steps:
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     build_arguments:
       - VCS_REF=${{CF_SHORT_REVISION}}
+  PushingDockerImage:
+    title: Promote to Artifactory
+    type: push
+    candidate: ${{BuildingDockerImage}}
+    image_name: swampup18/crochunter
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    registry: jfrog-jd-art
   CollectEnvVarsAndPublishBuildToArtifactory:
     title: Collecting Environment Variables and Publishing Build to Artifactory
     image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
@@ -18,6 +25,13 @@ steps:
       - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
       - jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
       - jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+  PushingDockerImage:
+    title: Promote to Artifactory
+    type: push
+    candidate: ${{BuildingDockerImage}}
+    image_name: swampup18/crochunter
+    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
+    registry: jfrog-jd-art
   PushDockerImageToArtifactoryBuild:
     title: Pushing Docker image to Artifactory
     type: composition
@@ -32,7 +46,11 @@ steps:
         image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
         environment:
           - JFROG_CLI_OFFER_CONFIG=false
-        command: bash -c 'docker login --username ${{REPO_USER}} --password "${{REPO_PASS}}" ${{REPOSITORY}} && jfrog rt docker-push --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter'
+        command: >
+          bash -c 'docker login --username ${{REPO_USER}} --password "${{REPO_PASS}}" ${{REPOSITORY}} && \
+          jfrog rt docker-push --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" \
+          --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter && \
+          jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}'
         depends_on:
           - buildimage
         volumes:
