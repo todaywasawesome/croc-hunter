@@ -9,15 +9,6 @@ steps:
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     build_arguments:
       - VCS_REF=${{CF_SHORT_REVISION}}
-  CollectEnvVarsAndPublishBuildToArtifactory:
-    title: Collecting Environment Variables and Publishing Build to Artifactory
-    image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
-    environment:
-      - JFROG_CLI_OFFER_CONFIG=false
-    commands:
-      - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
-      - jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
-      - jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
   PushingDockerImage:
     title: Promote to Artifactory
     type: push
@@ -25,6 +16,10 @@ steps:
     image_name: swampup18/crochunter
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     registry: jfrog-jd-art
+  PackageHelmChart:
+      image: devth/helm
+      commands:
+        - cf_export PACKAGE=$(helm package ./charts/crochunter | cut -d " " -f 8)
   PushDockerImageToArtifactoryBuild:
     title: Pushing Docker image to Artifactory
     type: composition
@@ -40,15 +35,21 @@ steps:
         environment:
           - JFROG_CLI_OFFER_CONFIG=false
         command: >
-          bash -c 'docker login --username ${{REPO_USER}} --password "${{REPO_PASS}}" ${{REPOSITORY}} && 
-          jfrog rt docker-push --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" 
-          --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter && 
-          jfrog rt build-publish --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}'
+          bash -c '
+          docker login --username ${{REPO_USER}} --password "${{REPO_PASS}}" ${{REPOSITORY}} && 
+          jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} && 
+          jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} &&
+          jfrog rt config jfrogjd --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" && \
+          jfrog rt docker-push --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter && 
+          jfrog rt upload --server-id=jfrogjd "$PACKAGE" helm-repo && \
+          jfrog rt build-publish --server-id=jfrogjd --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
+          '
         depends_on:
           - buildimage
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - /var/lib/docker:/var/lib/docker
+          - '${{CF_VOLUME_NAME}}:/codefresh/volume'
     add_flow_volume_to_composition: true
   Deploy_with_Helm:
     image: codefresh/cfstep-helm:2.9.0
@@ -81,12 +82,6 @@ steps:
       - custom_imagePullSecrets_email=${{REPO_EMAIL}}
       - custom_image=jfrogjd-crochunter.jfrog.io/swampup18/crochunter
       - custom_ingress_hostname=${{INGRESS_HOSTNAME}}
-  # PushHelmToArtifactoryBuild:
-  #   title: Pushing Helm Chart to Artifactory
-  #   environment:
-  #     - JFROG_CLI_OFFER_CONFIG=false
-  #   commands:
-  #     - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
   ScanBuildWithXray:
     title: Scanning Build with JFrog Xray
     image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
