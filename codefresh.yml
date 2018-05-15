@@ -9,13 +9,6 @@ steps:
     tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
     build_arguments:
       - VCS_REF=${{CF_SHORT_REVISION}}
-  PushingDockerImage:
-    title: Promote to Artifactory
-    type: push
-    candidate: ${{BuildingDockerImage}}
-    image_name: swampup18/crochunter
-    tag: '${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}'
-    registry: jfrog-jd-art
   CollectEnvVarsAndPublishBuildToArtifactory:
     title: Collecting Environment Variables and Publishing Build to Artifactory
     image: codefresh/docker-jfrog-cli-go:initial-branch-b28ef3d
