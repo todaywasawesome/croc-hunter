@@ -19,8 +19,8 @@ steps:
   PackageHelmChart:
       image: devth/helm
       commands:
-        - cf_export PACKAGE=$(helm package ./charts/crochunter | cut -d " " -f 8)
-  PushDockerImageToArtifactoryBuild:
+        - cf_export PACKAGE=$(helm package ./charts/croc-hunter | cut -d " " -f 8)
+  PushBuildInfoAndArtifactsToArtifactory:
     title: Pushing Docker image to Artifactory
     type: composition
     composition:
