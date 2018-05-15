@@ -32,6 +32,7 @@ steps:
     composition_candidates:
       scan_service:
         image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
+        working_dir: ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
         environment:
           - JFROG_CLI_OFFER_CONFIG=false
         command: >
