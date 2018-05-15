@@ -11,7 +11,7 @@ steps:
       - VCS_REF=${{CF_SHORT_REVISION}}
   CollectEnvVarsAndPublishBuildToArtifactory:
     title: Collecting Environment Variables and Publishing Build to Artifactory
-    image: codefresh/docker-jfrog-cli-go:initial-branch-b28ef3d
+    image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
     environment:
       - JFROG_CLI_OFFER_CONFIG=false
     commands:
@@ -29,7 +29,7 @@ steps:
           command: sh -c "exit 0"
     composition_candidates:
       scan_service:
-        image: codefresh/docker-jfrog-cli-go:initial-branch-b28ef3d
+        image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
         environment:
           - JFROG_CLI_OFFER_CONFIG=false
         command: bash -c 'docker login --username ${{REPO_USER}} --password "${{REPO_PASS}}" ${{REPOSITORY}} && jfrog rt docker-push --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter'
@@ -78,7 +78,7 @@ steps:
   #     - jfrog rt build-collect-env ${{CF_REPO_NAME}} ${{CF_BUILD_ID}}
   ScanBuildWithXray:
     title: Scanning Build with JFrog Xray
-    image: codefresh/docker-jfrog-cli-go:initial-branch-b28ef3d
+    image: codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
     environment:
       - JFROG_CLI_OFFER_CONFIG=false
     commands:
