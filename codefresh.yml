@@ -148,13 +148,13 @@ steps:
           jfrog rt docker-push --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" crochunter && 
           jfrog rt upload --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "$PACKAGE" helm-repo && 
           codefresh auth create-context --api-key ${{CODEFRESH_CLI_KEY}} &&
-          ARTIFACTORY_BUILD_URL=ARTIFACTORY_BUILD_URL=$$(jfrog rt build-publish --server-id=jfrogjd --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | grep -Eo '(http|https)://[^?"]+') 
-          codefresh annotate image $(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label $$ARTIFACTORY_BUILD_URL &&
+          #ARTIFACTORY_BUILD_URL=ARTIFACTORY_BUILD_URL=$$(jfrog rt build-publish --server-id=jfrogjd --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | grep -Eo '(http|https)://[^?"]+') 
+          #codefresh annotate image $(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label $$ARTIFACTORY_BUILD_URL &&
           jfrog rt build-scan --server-id=jfrogjd ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | artifactory_build.json && 
-          XRAY_ALERTS=XRAY_ALERTS=$$(cat artifactory_build.json | jq '.summary.total_alerts')
-          XRAY_MESSAGE=XRAY_MESSAGE=$$(cat artifactory_build.json | jq '.summary.message')
-          XRAY_DETAILS_URL=XRAY_DETAILS_URL=$$(cat artifactory_build.json | jq '.summary.more_details_url')
-          codefresh annotate image $(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label $$XRAY_ALERTS --label $$XRAY_MESSAGE --label $$XRAY_DETAILS_URL && 
+          #XRAY_ALERTS=XRAY_ALERTS=$$(cat artifactory_build.json | jq '.summary.total_alerts')
+          #XRAY_MESSAGE=XRAY_MESSAGE=$$(cat artifactory_build.json | jq '.summary.message')
+          #XRAY_DETAILS_URL=XRAY_DETAILS_URL=$$(cat artifactory_build.json | jq '.summary.more_details_url')
+          #codefresh annotate image $(docker images -q "${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}") --label $$XRAY_ALERTS --label $$XRAY_MESSAGE --label $$XRAY_DETAILS_URL && 
           if [[ $(jq '.summary.fail_build') = *true* ]]; then exit 1; else exit 0; fi
           '
         depends_on:
