@@ -145,7 +145,7 @@ steps:
           jfrog rt build-add-git ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} && 
           jfrog rt build-add-dependencies ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} report.html && 
           jfrog rt config jfrogjd --url="https://jfrogjd.jfrog.io/jfrogjd" --user=${{REPO_USER}} --password="${{REPO_PASS}}" && 
-          export DOCKER_IMAGE="${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}"
+          export DOCKER_IMAGE="${{REPOSITORY}}/swampup18/crochunter:${{CF_BRANCH_TAG_NORMALIZED}}-${{CF_SHORT_REVISION}}" &&
           jfrog rt docker-push --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} $$DOCKER_IMAGE crochunter && 
           jfrog rt upload --server-id=jfrogjd --build-name=${{CF_REPO_NAME}} --build-number=${{CF_BUILD_ID}} "$PACKAGE" helm-repo && 
           export ARTIFACTORY_BUILD_URL=ARTIFACTORY_BUILD_URL=$$(jfrog rt build-publish --server-id=jfrogjd --build-url="${{CF_BUILD_URL}}" --env-exclude="*key*;*pass*;" ${{CF_REPO_NAME}} ${{CF_BUILD_ID}} | grep -Eo '(http|https)://[^?"]+') &&
@@ -154,7 +154,7 @@ steps:
           export XRAY_MESSAGE=XRAY_MESSAGE=$$(cat artifactory_build.json | jq '.summary.message') && 
           export XRAY_DETAILS_URL=XRAY_DETAILS_URL=$$(cat artifactory_build.json | jq '.summary.more_details_url') && 
           codefresh auth create-context --api-key ${{CODEFRESH_CLI_KEY}} && 
-          codefresh annotate image $$(docker images -q $$DOCKER_IMAGE) --label $$ARTIFACTORY_BUILD_URL --label $$XRAY_ALERTS --label $$XRAY_MESSAGE --label $$XRAY_DETAILS_URL
+          codefresh annotate image $$(docker images -q $$DOCKER_IMAGE) --label $$ARTIFACTORY_BUILD_URL --label $$XRAY_ALERTS --label $$XRAY_MESSAGE --label $$XRAY_DETAILS_URL && 
           if [[ $(jq '.summary.fail_build') = *true* ]]; then exit 1; else exit 0; fi
           '
         depends_on:
