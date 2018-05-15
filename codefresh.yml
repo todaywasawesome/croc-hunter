@@ -153,7 +153,7 @@ steps:
           export XRAY_ALERTS=XRAY_ALERTS=$$(cat artifactory_build.json | jq '.summary.total_alerts') && 
           export XRAY_MESSAGE=XRAY_MESSAGE=$$(cat artifactory_build.json | jq '.summary.message') && 
           export XRAY_DETAILS_URL=XRAY_DETAILS_URL=$$(cat artifactory_build.json | jq '.summary.more_details_url') && 
-          codefresh auth create-context --api-key ${{CODEFRESH_API_KEY}} && 
+          codefresh auth create-context --api-key ${{CODEFRESH_CLI_KEY}} && 
           codefresh annotate image $$(docker images -q $$DOCKER_IMAGE) --label $$ARTIFACTORY_BUILD_URL --label $$XRAY_ALERTS --label $$XRAY_MESSAGE --label $$XRAY_DETAILS_URL
           if [[ $(jq '.summary.fail_build') = *true* ]]; then exit 1; else exit 0; fi
           '
