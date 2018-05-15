@@ -1,0 +1,36 @@
+scan_service_1  |     "failure": 0                                                   
+scan_service_1  |   }                                                                
+scan_service_1  | }                                                                  
+scan_service_1  | Created new context: default                                       
+scan_service_1  | Switched to context: default                                       
+scan_service_1  | [Info] Deploying build info...                                     
+scan_service_1  | [Info] Build info successfully deployed. Browse it in Artifactory u
+nder https://jfrogjd.jfrog.io/jfrogjd/webapp/builds/croc-hunter/5afb4b599a82120001172
+425                                                                                  
+scan_service_1  | My Test grep -Eo (http|https)://[a-zA-Z0-9./?=_-]* publish.txt     
+scan_service_1  | annotations add successfully 
+Running composition step: Updating Artifactory with Codefresh Build Information and Artifacts
+Pulling r.cfcr.io/jldeen/swampup18/crochunter@sha256:dc93194e400d79514c58a205b4e255cbd2b3e8b2455e5b6d998ce209be4a1582
+Pulling codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
+Pulling image codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
+Digest: sha256:d8a0d9c3f1ae5d89444774d0084fb09903dcfae7e448784929700d27dde53620
+Status: Image is up to date for codefresh/docker-jfrog-cli-go:initial-branch-c6eeb5c
+Pulling image jldeen/swampup18/crochunter:sha256:dc93194e400d79514c58a205b4e255cbd2b3e8b2455e5b6d998ce209be4a1582
+Digest: sha256:dc93194e400d79514c58a205b4e255cbd2b3e8b2455e5b6d998ce209be4a1582
+Status: Image is up to date for r.cfcr.io/jldeen/swampup18/crochunter@sha256:dc93194e400d79514c58a205b4e255cbd2b3e8b2455e5b6d998ce209be4a1582
+Finished pulling r.cfcr.io/jldeen/swampup18/crochunter@sha256:dc93194e400d79514c58a205b4e255cbd2b3e8b2455e5b6d998ce209be4a1582 from internal registry
+Starting composition
+Creating network "bkytoa0m_default" with the default driver
+Creating bkytoa0m_buildimage_1
+Creating bkytoa0m_scan_service_1
+Attaching to bkytoa0m_buildimage_1, bkytoa0m_scan_service_1
+ |perties on: crochunter/swampup18/crochunter/jfrog-xray-build-scan-b43ef91/sha256__605ce1bd3f3164f2949a30501cc596f52a72de05da1306ab360055f0d7130c32
+ on: crochunter/swampup18/crochunter/jfrog-xray-build-scan-b43ef91/sha256__c4582ef7075e21ee8f3ab49c73f782eda251d3b2ce51ca8cc849fb9987aaaa2d
+1  | |",
+08d432f9a6e917012f6558acc1c14138d7b5/pax-pos-size-file.tar",
+d8814f9d4dee7597601c99eca367177bbaaab1e09d30468/pax-bad-hdr-file.tar",
+rs.tar",
+e5d8fbd742dba03c6dc357b/neg-size.tar",
+256:2afdbe9ff49bd922f23484bdd3b5e02f203b55c81a91e202636646c8197bab74/go-no-datadesc-sig.zip",
+ternal, skipping
+
